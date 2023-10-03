@@ -122,4 +122,3 @@ App.type('pear')
 // then React does another render
 console.log("3rd Render")
 App = React.render(Component)
-
