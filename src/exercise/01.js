@@ -4,6 +4,7 @@
 import * as React from 'react'
 
 function countReducer(state, action) {
+  console.log({state})
   if (action.type === "increment") {
     return state + action.step
   }
