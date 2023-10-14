@@ -41,31 +41,26 @@ function useAsync(asyncCallback, initialState, dependencyArray) {
 
 
     React.useEffect(() => {
-
-
         async function asyncCall() {
             try {
 
                 const data = await asyncCallback();
                 if (!data) {
-                    return/**/;
+                    // I do not really like this return here; useEffect should only return a cleanup function
+                    return;
                 }
                 // I do not like this one here, but I am forced to put it if I want to use try...except. Otherwise, with promise chaining, the functionality would make sense. See the exercise solution.
                 // A workaround for this would be to add to the dispatcher the action `idle` and set it in the if above, but idle is not an action done by the user, so I would not add it.
                 dispatch({type: 'pending', data});
                 dispatch({type: 'resolved', data});
-
             } catch (error) {
                 dispatch({type: 'rejected', error});
-                return state;
             }
-            return state;
         }
 
         asyncCall();
 
-
-    }, dependencyArray);
+    }, dependencyArray)
 
     return state;
 }
