@@ -28,7 +28,7 @@ function infoReducer(state, action) {
     }
 }
 
-function useAsync(asyncCallback, initialState, dependencyArray) {
+function useAsync(asyncCallback, initialState) {
 
     const [state, dispatch] = React.useReducer(infoReducer,
         {
@@ -46,7 +46,6 @@ function useAsync(asyncCallback, initialState, dependencyArray) {
 
                 const data = await asyncCallback();
                 if (!data) {
-                    // I do not really like this return here; useEffect should only return a cleanup function
                     return;
                 }
                 // I do not like this one here, but I am forced to put it if I want to use try...except. Otherwise, with promise chaining, the functionality would make sense. See the exercise solution.
@@ -60,7 +59,7 @@ function useAsync(asyncCallback, initialState, dependencyArray) {
 
         asyncCall();
 
-    }, dependencyArray)
+    }, [asyncCallback])
 
     return state;
 }
@@ -73,13 +72,14 @@ function PokemonInfo({pokemonName}) {
         status: pokemonName ? 'pending' : 'idle',
     };
 
-    const asyncFetch = () => {
+    const asyncFetch = React.useCallback(() => {
         if (!pokemonName) {
             return;
         } else return fetchPokemon(pokemonName);
-    }
+    }, [pokemonName])
 
-    const state = useAsync(asyncFetch, initialState, [pokemonName, asyncFetch]);
+
+    const state = useAsync(asyncFetch, initialState);
 
 
     const {data: pokemon, status, error} = state;
