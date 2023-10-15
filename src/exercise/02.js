@@ -9,6 +9,7 @@ import {
     PokemonInfoFallback,
     PokemonErrorBoundary,
 } from '../pokemon';
+import {useCallback} from "react";
 
 
 function infoReducer(state, action) {
@@ -28,7 +29,7 @@ function infoReducer(state, action) {
     }
 }
 
-function useAsync(asyncCallback, initialState) {
+function useAsync(initialState) {
 
     const [state, dispatch] = React.useReducer(infoReducer,
         {
@@ -39,29 +40,19 @@ function useAsync(asyncCallback, initialState) {
         },
     );
 
+    const {data, error, status} = state
 
-    React.useEffect(() => {
-        async function asyncCall() {
-            try {
+    const run = useCallback(promise => {
+        dispatch({type: 'pending'})
+        promise.then(data => dispatch({type: 'resolved', data})).catch(error => dispatch({type: 'rejected', error}))
+    }, [])
 
-                const data = await asyncCallback();
-                if (!data) {
-                    return;
-                }
-                // I do not like this one here, but I am forced to put it if I want to use try...except. Otherwise, with promise chaining, the functionality would make sense. See the exercise solution.
-                // A workaround for this would be to add to the dispatcher the action `idle` and set it in the if above, but idle is not an action done by the user, so I would not add it.
-                dispatch({type: 'pending', data});
-                dispatch({type: 'resolved', data});
-            } catch (error) {
-                dispatch({type: 'rejected', error});
-            }
-        }
-
-        asyncCall();
-
-    }, [asyncCallback])
-
-    return state;
+    return {
+    error,
+    status,
+    data,
+    run,
+  };
 }
 
 
@@ -72,17 +63,18 @@ function PokemonInfo({pokemonName}) {
         status: pokemonName ? 'pending' : 'idle',
     };
 
-    const asyncFetch = React.useCallback(() => {
+
+    const {data: pokemon, status, error, run} = useAsync(initialState);
+
+    React.useEffect(() => {
         if (!pokemonName) {
-            return;
-        } else return fetchPokemon(pokemonName);
-    }, [pokemonName])
+            return
+        }
 
+        const pokemonPromise = fetchPokemon(pokemonName)
+        run(pokemonPromise)
 
-    const state = useAsync(asyncFetch, initialState);
-
-
-    const {data: pokemon, status, error} = state;
+    }, [pokemonName, run])
 
     switch (status) {
         case 'idle':
