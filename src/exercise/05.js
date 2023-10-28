@@ -3,29 +3,28 @@
 
 import * as React from 'react'
 
-
-const MessagesDisplay = React.forwardRef(function MessagesDisplay({messages}, ref) {
-  
+const MessagesDisplay = React.forwardRef(function MessagesDisplay(
+  {messages},
+  ref,
+) {
   const containerRef = React.useRef()
-  
   React.useLayoutEffect(() => {
     scrollToBottom()
   })
-
   function scrollToTop() {
-     containerRef.current.scrollTop = 0
+    containerRef.current.scrollTop = 0
   }
+
   function scrollToBottom() {
     containerRef.current.scrollTop = containerRef.current.scrollHeight
   }
 
   React.useImperativeHandle(ref, () => {
     return {
-      scrollToTop: () => scrollToTop(),
-      scrollToBottom: () => scrollToBottom()
+      scrollToTop,
+      scrollToBottom,
     }
   })
-
 
   return (
     <div ref={containerRef} role="log">
